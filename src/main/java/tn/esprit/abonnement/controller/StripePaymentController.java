@@ -97,8 +97,8 @@ public class StripePaymentController {
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setCustomerEmail(request.getEmail())
-                    .setSuccessUrl(frontendUrl + "/user/subscription/payment-success?session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl(frontendUrl + "/user/subscription/payment-cancel")
+                    .setSuccessUrl(frontendUrl + "/subscriptions/payment-success?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl(frontendUrl + "/subscriptions/payment-cancel")
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
                                     .setQuantity(1L)
