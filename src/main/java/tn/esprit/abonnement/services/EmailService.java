@@ -344,4 +344,63 @@ public class EmailService {
                                 .replace("\"", "&quot;")
                                 .replace("'", "&#39;");
         }
+
+        /**
+         * Send expiry reminder email to warn users their subscription is expiring soon
+         */
+        public boolean sendExpiryReminderEmail(String toEmail, String userName,
+                        UserSubscription sub, long daysLeft) {
+                try {
+                        MimeMessage message = mailSender.createMimeMessage();
+                        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                        helper.setFrom(fromEmail);
+                        helper.setTo(toEmail);
+                        helper.setSubject("Your " + platformName + " subscription expires in " + daysLeft + " day(s)!");
+
+                        String emailBody = buildExpiryReminderBody(userName, sub, daysLeft);
+                        helper.setText(emailBody, true);
+
+                        mailSender.send(message);
+
+                        logger.info("Expiry reminder email sent successfully to: {}", toEmail);
+                        return true;
+
+                } catch (MessagingException e) {
+                        logger.error("Failed to send expiry reminder email to {}: {}", toEmail, e.getMessage(), e);
+                        return false;
+                } catch (Exception e) {
+                        logger.error("Unexpected error sending expiry reminder email to {}: {}", toEmail,
+                                        e.getMessage(), e);
+                        return false;
+                }
+        }
+
+        private String buildExpiryReminderBody(String userName, UserSubscription subscription, long daysLeft) {
+                String safeName = escapeHtml(userName != null ? userName : "there");
+                String planName = subscription.getPlan() != null
+                                ? escapeHtml(subscription.getPlan().getName().name())
+                                : "Premium";
+                String expiryDate = formatDate(subscription.getExpiresAt());
+
+                StringBuilder html = new StringBuilder();
+                html.append("<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'></head>");
+                html.append("<body style='margin:0;padding:0;background-color:#f0f2f5;font-family:Arial,sans-serif;'>");
+                html.append("<table width='100%' cellpadding='0' cellspacing='0' style='background-color:#f0f2f5;padding:40px 20px;'>");
+                html.append("<tr><td align='center'>");
+                html.append("<table width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);'>");
+                html.append("<tr><td style='background:linear-gradient(135deg,#f59e0b,#ef4444);padding:40px;text-align:center;'>");
+                html.append("<h1 style='margin:0;font-size:32px;font-weight:800;color:#fff;'>").append(platformName).append("</h1>");
+                html.append("<p style='margin:8px 0 0;font-size:14px;color:rgba(255,255,255,0.85);text-transform:uppercase;'>Subscription Expiring Soon</p>");
+                html.append("</td></tr>");
+                html.append("<tr><td style='background:#fff;padding:32px 40px;text-align:center;'>");
+                html.append("<h2 style='margin:0 0 8px;font-size:24px;color:#1e293b;'>Expiring in ").append(daysLeft).append(" day(s)</h2>");
+                html.append("<p style='margin:0 0 24px;font-size:15px;color:#64748b;'>Hey <strong>").append(safeName).append("</strong>, your <strong>").append(planName).append("</strong> plan expires on <strong>").append(expiryDate).append("</strong>.</p>");
+                html.append("<a href='http://localhost:4200/subscriptions' style='display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:15px;font-weight:600;'>Renew Now</a>");
+                html.append("</td></tr>");
+                html.append("<tr><td style='background:#fff;padding:24px 40px;text-align:center;border-radius:0 0 16px 16px;'>");
+                html.append("<p style='margin:0;font-size:13px;color:#94a3b8;'>Need help? <a href='mailto:").append(supportEmail).append("' style='color:#6366f1;'>").append(supportEmail).append("</a></p>");
+                html.append("</td></tr></table></td></tr></table></body></html>");
+                return html.toString();
+        }
 }

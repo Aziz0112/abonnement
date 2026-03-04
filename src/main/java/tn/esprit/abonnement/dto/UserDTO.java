@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookRequest {
-    private Long userId;
-    private Long planId;
-    private boolean autoRenew = false;
+public class UserDTO {
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private String email;
 }

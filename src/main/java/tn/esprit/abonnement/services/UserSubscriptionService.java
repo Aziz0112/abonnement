@@ -54,6 +54,8 @@ public class UserSubscriptionService {
                 .subscribedAt(now)
                 .expiresAt(expiresAt)
                 .status(tn.esprit.abonnement.entity.SubscriptionStatus.ACTIVE)
+                .reminderSent(false)
+                .autoRenew(false)
                 .build();
 
         return userSubscriptionRepository.save(subscription);
@@ -92,6 +94,9 @@ public class UserSubscriptionService {
         if (subscription.getStatus() == null) {
             subscription.setStatus(tn.esprit.abonnement.entity.SubscriptionStatus.ACTIVE);
         }
+
+        // Feature 2: reset reminder flag on new subscription
+        subscription.setReminderSent(false);
 
         return userSubscriptionRepository.save(subscription);
     }
@@ -139,5 +144,15 @@ public class UserSubscriptionService {
 
         subscription.setStatus(tn.esprit.abonnement.entity.SubscriptionStatus.CANCELLED);
         userSubscriptionRepository.save(subscription);
+    }
+
+    /**
+     * Feature 4: Toggle auto-renew on/off for a subscription.
+     */
+    @Transactional
+    public UserSubscription toggleAutoRenew(Long subscriptionId, boolean enabled) {
+        UserSubscription subscription = getById(subscriptionId);
+        subscription.setAutoRenew(enabled);
+        return userSubscriptionRepository.save(subscription);
     }
 }

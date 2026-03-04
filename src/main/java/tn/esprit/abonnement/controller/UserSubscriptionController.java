@@ -64,4 +64,10 @@ public class UserSubscriptionController {
         userSubscriptionService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/auto-renew")
+    public ResponseEntity<UserSubscription> toggleAutoRenew(@PathVariable Long id,
+            @RequestParam boolean enabled) {
+        return ResponseEntity.ok(userSubscriptionService.toggleAutoRenew(id, enabled));
+    }
 }

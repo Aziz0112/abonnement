@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookRequest {
-    private Long userId;
-    private Long planId;
-    private boolean autoRenew = false;
+public class MonthlyRevenueDTO {
+    private int year;
+    private int month;
+    private double revenue;
 }

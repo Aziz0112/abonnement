@@ -270,4 +270,94 @@ public class PdfService {
         int last4 = 1000 + (int)(Math.random() * 9000);
         return String.valueOf(last4);
     }
+
+    /**
+     * Generate a PDF invoice for an Invoice entity (Feature 3)
+     */
+    public byte[] generateInvoicePdf(tn.esprit.abonnement.entity.Invoice invoice) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            PdfWriter writer = new PdfWriter(baos);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+
+            PdfFont boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+            PdfFont normalFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+
+            document.add(new Paragraph(platformName)
+                    .setFont(boldFont).setFontSize(20)
+                    .setFontColor(ColorConstants.DARK_GRAY)
+                    .setTextAlignment(TextAlignment.CENTER).setMarginBottom(5));
+            document.add(new Paragraph("INVOICE")
+                    .setFont(boldFont).setFontSize(18)
+                    .setFontColor(ColorConstants.BLUE)
+                    .setTextAlignment(TextAlignment.CENTER).setMarginBottom(15));
+
+            Table infoTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
+                    .setWidth(UnitValue.createPercentValue(100)).setMarginBottom(20);
+
+            infoTable.addCell(new Cell().add(new Paragraph("Invoice Number:").setFont(boldFont)).setBorder(null));
+            infoTable.addCell(new Cell().add(new Paragraph(invoice.getInvoiceNumber()).setFont(normalFont)).setBorder(null));
+
+            infoTable.addCell(new Cell().add(new Paragraph("Issue Date:").setFont(boldFont)).setBorder(null));
+            infoTable.addCell(new Cell().add(new Paragraph(invoice.getIssuedAt().format(DATE_FORMATTER)).setFont(normalFont)).setBorder(null));
+
+            infoTable.addCell(new Cell().add(new Paragraph("User ID:").setFont(boldFont)).setBorder(null));
+            infoTable.addCell(new Cell().add(new Paragraph(invoice.getUserId().toString()).setFont(normalFont)).setBorder(null));
+
+            document.add(infoTable);
+
+            document.add(new Paragraph("Subscription Details")
+                    .setFont(boldFont).setFontSize(14)
+                    .setFontColor(ColorConstants.DARK_GRAY).setMarginBottom(10));
+
+            Table subTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
+                    .setWidth(UnitValue.createPercentValue(100)).setMarginBottom(20);
+
+            UserSubscription sub = invoice.getSubscription();
+            String planName = sub != null && sub.getPlan() != null ? sub.getPlan().getName().name() : "N/A";
+            String duration = sub != null && sub.getPlan() != null ? sub.getPlan().getDurationDays() + " days" : "N/A";
+            String renewalDate = invoice.getRenewalDate() != null ? invoice.getRenewalDate().format(SIMPLE_DATE_FORMATTER) : "N/A";
+
+            subTable.addCell(new Cell().add(new Paragraph("Plan Name:").setFont(boldFont)).setBorder(null));
+            subTable.addCell(new Cell().add(new Paragraph(planName).setFont(normalFont)).setBorder(null));
+
+            subTable.addCell(new Cell().add(new Paragraph("Duration:").setFont(boldFont)).setBorder(null));
+            subTable.addCell(new Cell().add(new Paragraph(duration).setFont(normalFont)).setBorder(null));
+
+            subTable.addCell(new Cell().add(new Paragraph("Renewal Date:").setFont(boldFont)).setBorder(null));
+            subTable.addCell(new Cell().add(new Paragraph(renewalDate).setFont(normalFont)).setBorder(null));
+
+            document.add(subTable);
+
+            document.add(new Paragraph("Payment Details")
+                    .setFont(boldFont).setFontSize(14)
+                    .setFontColor(ColorConstants.DARK_GRAY).setMarginBottom(10));
+
+            Table payTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
+                    .setWidth(UnitValue.createPercentValue(100)).setMarginBottom(20);
+
+            payTable.addCell(new Cell().add(new Paragraph("Amount Paid:").setFont(boldFont)).setBorder(null));
+            payTable.addCell(new Cell().add(new Paragraph(invoice.getAmount() + " USD").setFont(boldFont))
+                    .setFontColor(ColorConstants.DARK_GRAY).setBorder(null));
+
+            payTable.addCell(new Cell().add(new Paragraph("Payment Status:").setFont(boldFont)).setBorder(null));
+            payTable.addCell(new Cell().add(new Paragraph(invoice.isPaid() ? "PAID" : "UNPAID").setFont(boldFont))
+                    .setFontColor(invoice.isPaid() ? ColorConstants.GREEN : ColorConstants.RED).setBorder(null));
+
+            String sessionRef = invoice.getStripeSessionId() != null ? invoice.getStripeSessionId() : "N/A";
+            payTable.addCell(new Cell().add(new Paragraph("Transaction Ref:").setFont(boldFont)).setBorder(null));
+            payTable.addCell(new Cell().add(new Paragraph(sessionRef).setFont(normalFont)).setBorder(null));
+
+            document.add(payTable);
+
+            addFooter(document, normalFont);
+            document.close();
+            logger.info("Invoice PDF generated for invoice: {}", invoice.getInvoiceNumber());
+            return baos.toByteArray();
+
+        } catch (Exception e) {
+            logger.error("Error generating invoice PDF: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate invoice PDF", e);
+        }
+    }
 }

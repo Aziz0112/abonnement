@@ -33,4 +33,37 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 
     // Count active subscriptions for a plan
     long countByPlanIdAndStatus(Long planId, SubscriptionStatus status);
+
+    // Feature 1: Analytics queries
+    @Query("SELECT COUNT(s) FROM UserSubscription s")
+    long countTotalSubscribers();
+
+    @Query("SELECT COUNT(s) FROM UserSubscription s WHERE s.status = :status")
+    long countByStatus(@Param("status") SubscriptionStatus status);
+
+    @Query("SELECT FUNCTION('YEAR', s.subscribedAt) AS yr, " +
+           "FUNCTION('MONTH', s.subscribedAt) AS mo, " +
+           "SUM(s.plan.price) AS revenue " +
+           "FROM UserSubscription s " +
+           "WHERE s.status <> 'CANCELLED' " +
+           "GROUP BY FUNCTION('YEAR', s.subscribedAt), FUNCTION('MONTH', s.subscribedAt) " +
+           "ORDER BY yr ASC, mo ASC")
+    List<Object[]> getMonthlyRevenue();
+
+    @Query("SELECT FUNCTION('YEAR', s.subscribedAt) AS yr, " +
+           "FUNCTION('MONTH', s.subscribedAt) AS mo, " +
+           "COUNT(s) AS newSubs " +
+           "FROM UserSubscription s " +
+           "GROUP BY FUNCTION('YEAR', s.subscribedAt), FUNCTION('MONTH', s.subscribedAt) " +
+           "ORDER BY yr ASC, mo ASC")
+    List<Object[]> getMonthlyGrowth();
+
+    // Feature 2: Expiry reminder query
+    @Query("SELECT s FROM UserSubscription s " +
+           "WHERE s.status = 'ACTIVE' " +
+           "AND s.expiresAt BETWEEN :now AND :deadline " +
+           "AND s.reminderSent = false")
+    List<UserSubscription> findSubscriptionsExpiringBetween(
+        @Param("now") LocalDateTime now,
+        @Param("deadline") LocalDateTime deadline);
 }

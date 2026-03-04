@@ -32,4 +32,15 @@ public class UserSubscription {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private SubscriptionStatus status;
+
+    @Column(name = "reminder_sent", nullable = false)
+    @Builder.Default
+    private boolean reminderSent = false;
+
+    @Column(name = "auto_renew", nullable = false)
+    @Builder.Default
+    private boolean autoRenew = false;
+
+    @Column(name = "stripe_customer_id")
+    private String stripeCustomerId;
 }

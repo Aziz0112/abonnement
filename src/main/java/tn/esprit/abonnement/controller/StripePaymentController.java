@@ -20,6 +20,7 @@ import tn.esprit.abonnement.entity.SubscriptionPlan;
 import tn.esprit.abonnement.entity.SubscriptionStatus;
 import tn.esprit.abonnement.entity.UserSubscription;
 import tn.esprit.abonnement.services.EmailService;
+import tn.esprit.abonnement.services.InvoiceService;
 import tn.esprit.abonnement.services.PdfService;
 import tn.esprit.abonnement.services.SubscriptionPlanService;
 import tn.esprit.abonnement.services.UserSubscriptionService;
@@ -55,6 +56,9 @@ public class StripePaymentController {
 
     @Autowired
     private PdfService pdfService;
+
+    @Autowired
+    private InvoiceService invoiceService;
 
     @PostConstruct
     public void init() {
@@ -172,6 +176,23 @@ public class StripePaymentController {
                     request.getPlanId());
 
             logger.info("Subscription created with ID: {}", subscription.getId());
+
+            // Feature 4: Store Stripe customer ID if available
+            try {
+                String customerId = session.getCustomer();
+                if (customerId != null) {
+                    subscription.setStripeCustomerId(customerId);
+                }
+            } catch (Exception e) {
+                logger.warn("Could not retrieve Stripe customer ID: {}", e.getMessage());
+            }
+
+            // Feature 3: Create invoice for the subscription
+            try {
+                invoiceService.createInvoiceForSubscription(subscription, request.getSessionId());
+            } catch (Exception e) {
+                logger.error("Failed to create invoice: {}", e.getMessage(), e);
+            }
 
             // Send confirmation email with PDF receipt
             try {
