@@ -7,8 +7,7 @@ import tn.esprit.abonnement.dto.AnalyticsDashboardDTO;
 import tn.esprit.abonnement.services.AnalyticsService;
 
 @RestController
-@RequestMapping("/api/analytics")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/abonnements/analytics")
 @RequiredArgsConstructor
 public class AnalyticsController {
 

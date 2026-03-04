@@ -11,8 +11,7 @@ import tn.esprit.abonnement.services.InvoiceService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/invoices")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api/abonnements/invoices")
 @RequiredArgsConstructor
 public class InvoiceController {
 
