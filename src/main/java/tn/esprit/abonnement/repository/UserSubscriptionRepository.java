@@ -34,28 +34,29 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     // Count active subscriptions for a plan
     long countByPlanIdAndStatus(Long planId, SubscriptionStatus status);
 
-    // Feature 1: Analytics queries
-    @Query("SELECT COUNT(s) FROM UserSubscription s")
+    // Feature 1: Analytics queries (PostgreSQL-compatible using native SQL)
+    @Query(value = "SELECT COUNT(*) FROM usersubscriptions", nativeQuery = true)
     long countTotalSubscribers();
 
-    @Query("SELECT COUNT(s) FROM UserSubscription s WHERE s.status = :status")
+    @Query(value = "SELECT COUNT(*) FROM usersubscriptions WHERE status = CAST(:status AS VARCHAR)", nativeQuery = true)
     long countByStatus(@Param("status") SubscriptionStatus status);
 
-    @Query("SELECT FUNCTION('YEAR', s.subscribedAt) AS yr, " +
-           "FUNCTION('MONTH', s.subscribedAt) AS mo, " +
-           "SUM(s.plan.price) AS revenue " +
-           "FROM UserSubscription s " +
+    @Query(value = "SELECT EXTRACT(YEAR FROM s.subscribed) AS yr, " +
+           "EXTRACT(MONTH FROM s.subscribed) AS mo, " +
+           "SUM(sp.price) AS revenue " +
+           "FROM usersubscriptions s " +
+           "JOIN subscriptionplans sp ON s.plan_id = sp.id " +
            "WHERE s.status <> 'CANCELLED' " +
-           "GROUP BY FUNCTION('YEAR', s.subscribedAt), FUNCTION('MONTH', s.subscribedAt) " +
-           "ORDER BY yr ASC, mo ASC")
+           "GROUP BY EXTRACT(YEAR FROM s.subscribed), EXTRACT(MONTH FROM s.subscribed) " +
+           "ORDER BY yr ASC, mo ASC", nativeQuery = true)
     List<Object[]> getMonthlyRevenue();
 
-    @Query("SELECT FUNCTION('YEAR', s.subscribedAt) AS yr, " +
-           "FUNCTION('MONTH', s.subscribedAt) AS mo, " +
-           "COUNT(s) AS newSubs " +
-           "FROM UserSubscription s " +
-           "GROUP BY FUNCTION('YEAR', s.subscribedAt), FUNCTION('MONTH', s.subscribedAt) " +
-           "ORDER BY yr ASC, mo ASC")
+    @Query(value = "SELECT EXTRACT(YEAR FROM s.subscribed) AS yr, " +
+           "EXTRACT(MONTH FROM s.subscribed) AS mo, " +
+           "COUNT(*) AS newSubs " +
+           "FROM usersubscriptions s " +
+           "GROUP BY EXTRACT(YEAR FROM s.subscribed), EXTRACT(MONTH FROM s.subscribed) " +
+           "ORDER BY yr ASC, mo ASC", nativeQuery = true)
     List<Object[]> getMonthlyGrowth();
 
     // Feature 2: Expiry reminder query

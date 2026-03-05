@@ -114,11 +114,15 @@ public class UserSubscriptionService {
         return userSubscriptionRepository.save(existing);
     }
 
+    @Transactional
     public void delete(Long id) {
-        if (!userSubscriptionRepository.existsById(id)) {
-            throw new RuntimeException("UserSubscription not found with id: " + id);
-        }
-        userSubscriptionRepository.deleteById(id);
+        UserSubscription subscription = userSubscriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("UserSubscription not found with id: " + id));
+        
+        // Soft delete: change status to CANCELLED instead of hard delete
+        // This prevents foreign key constraint errors from invoices table
+        subscription.setStatus(tn.esprit.abonnement.entity.SubscriptionStatus.CANCELLED);
+        userSubscriptionRepository.save(subscription);
     }
 
     public UserSubscription getById(Long id) {
