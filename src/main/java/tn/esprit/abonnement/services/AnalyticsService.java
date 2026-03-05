@@ -19,9 +19,9 @@ public class AnalyticsService {
 
     public AnalyticsDashboardDTO getAdminDashboard() {
         long total = userSubscriptionRepository.countTotalSubscribers();
-        long active = userSubscriptionRepository.countByStatus(SubscriptionStatus.ACTIVE);
-        long expired = userSubscriptionRepository.countByStatus(SubscriptionStatus.EXPIRED);
-        long cancelled = userSubscriptionRepository.countByStatus(SubscriptionStatus.CANCELLED);
+        long active = userSubscriptionRepository.countByStatus(SubscriptionStatus.ACTIVE.name());
+        long expired = userSubscriptionRepository.countByStatus(SubscriptionStatus.EXPIRED.name());
+        long cancelled = userSubscriptionRepository.countByStatus(SubscriptionStatus.CANCELLED.name());
 
         List<MonthlyRevenueDTO> monthlyRevenue = userSubscriptionRepository.getMonthlyRevenue()
                 .stream()

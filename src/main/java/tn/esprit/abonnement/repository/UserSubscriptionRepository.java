@@ -39,7 +39,7 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     long countTotalSubscribers();
 
     @Query(value = "SELECT COUNT(*) FROM usersubscriptions WHERE status = :status", nativeQuery = true)
-    long countByStatus(@Param("status") SubscriptionStatus status);
+    long countByStatus(@Param("status") String status);
 
     @Query(value = "SELECT EXTRACT(YEAR FROM s.subscribed) AS yr, " +
            "EXTRACT(MONTH FROM s.subscribed) AS mo, " +
