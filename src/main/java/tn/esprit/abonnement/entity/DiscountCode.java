@@ -1,5 +1,6 @@
 package tn.esprit.abonnement.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,7 @@ public class DiscountCode {
     @Builder.Default
     private Integer usesCount = 0;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
@@ -37,6 +39,7 @@ public class DiscountCode {
     @Builder.Default
     private boolean isActive = true;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
     @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
