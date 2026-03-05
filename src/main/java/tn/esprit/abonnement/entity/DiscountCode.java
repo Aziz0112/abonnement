@@ -31,7 +31,7 @@ public class DiscountCode {
     @Builder.Default
     private Integer usesCount = 0;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][XXX]", timezone = "UTC")
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
@@ -39,7 +39,7 @@ public class DiscountCode {
     @Builder.Default
     private boolean isActive = true;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][XXX]", timezone = "UTC")
     @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
