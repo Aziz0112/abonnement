@@ -1,10 +1,10 @@
 package tn.esprit.abonnement.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.function.Supplier;
 
 @Entity
 @Table(name = "discount_codes")
@@ -31,6 +31,7 @@ public class DiscountCode {
     @Builder.Default
     private Integer usesCount = 0;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][XXX]", timezone = "UTC")
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
@@ -38,15 +39,8 @@ public class DiscountCode {
     @Builder.Default
     private boolean isActive = true;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][XXX]", timezone = "UTC")
     @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
-    
-    // Fix for Lombok @Builder.Default with LocalDateTime.now()
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-    }
 }
