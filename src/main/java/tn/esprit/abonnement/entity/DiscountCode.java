@@ -30,9 +30,6 @@ public class DiscountCode {
     @Builder.Default
     private Integer usesCount = 0;
 
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
-
     @Column(name = "is_active")
     @Builder.Default
     private boolean isActive = true;

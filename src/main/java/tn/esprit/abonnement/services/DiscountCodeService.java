@@ -59,12 +59,6 @@ public class DiscountCodeService {
             throw new RuntimeException("Discount code is no longer active");
         }
 
-        // Check if code has expired
-        if (discount.getExpiresAt() != null && 
-            discount.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Discount code has expired");
-        }
-
         // Check if code has reached maximum uses
         if (discount.getMaxUses() != null && 
             discount.getUsesCount() >= discount.getMaxUses()) {
