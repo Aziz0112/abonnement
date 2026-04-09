@@ -95,12 +95,22 @@ Required packages:
 cp .env.example .env
 
 # Edit .env with your database credentials
+# IMPORTANT: If your database is hosted on a remote server,
+# use the server's IP address or domain name
+# Example: DB_HOST=192.168.1.100 or DB_HOST=your-database-server.com
 # DB_HOST=localhost
 # DB_PORT=5432
 # DB_NAME=abonnements
 # DB_USER=postgres
 # DB_PASSWORD=your_password
 ```
+
+**⚠️ Remote Database?** If your database is hosted on a server, see [REMOTE_DATABASE_SETUP.md](REMOTE_DATABASE_SETUP.md) for detailed configuration options including:
+- Direct connection to remote server
+- SSH tunnel for secure access
+- VPN connection for private networks
+- SSL/TLS configuration
+- Security best practices
 
 ---
 
