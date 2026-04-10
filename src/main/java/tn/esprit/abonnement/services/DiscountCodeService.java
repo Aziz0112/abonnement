@@ -24,6 +24,25 @@ public class DiscountCodeService {
     @Transactional
     public DiscountCode createDiscountCode(DiscountCode code) {
         log.info("Creating discount code: {}", code.getCode());
+        
+        // Validate discount percentage
+        if (code.getDiscountPercentage() == null || code.getDiscountPercentage() <= 0 || code.getDiscountPercentage() > 100) {
+            throw new IllegalArgumentException("Discount percentage must be between 1 and 100");
+        }
+        
+        // Check if code already exists
+        if (discountCodeRepository.findByCode(code.getCode()).isPresent()) {
+            throw new IllegalArgumentException("Discount code '" + code.getCode() + "' already exists");
+        }
+        
+        // Initialize default values
+        if (code.getUsesCount() == null) {
+            code.setUsesCount(0);
+        }
+        if (!code.isActive()) {
+            code.setActive(true);
+        }
+        
         return discountCodeRepository.save(code);
     }
 

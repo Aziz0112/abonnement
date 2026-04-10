@@ -34,6 +34,9 @@ public class DiscountCode {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
