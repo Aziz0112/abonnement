@@ -2,6 +2,7 @@ package tn.esprit.abonnement.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.abonnement.dto.ChatbotRequest;
@@ -12,6 +13,7 @@ import tn.esprit.abonnement.services.chatbot.ChatbotService;
 @RequestMapping("/api/chatbot")
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnBean(ChatbotService.class)
 public class ChatbotController {
 
     private final ChatbotService chatbotService;

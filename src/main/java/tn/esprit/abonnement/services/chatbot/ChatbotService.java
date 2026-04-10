@@ -6,6 +6,7 @@ import com.theokanning.openai.completion.chat.ChatMessageRole;
 import com.theokanning.openai.service.OpenAiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import tn.esprit.abonnement.config.OpenAIConfig;
 import tn.esprit.abonnement.dto.ChatbotRequest;
@@ -19,10 +20,12 @@ import tn.esprit.abonnement.services.chatbot.handlers.SubscriptionManagementHand
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnBean(OpenAiService.class)
 public class ChatbotService {
 
     private final OpenAiService openAiService;

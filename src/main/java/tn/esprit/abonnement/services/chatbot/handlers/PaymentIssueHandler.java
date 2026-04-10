@@ -1,6 +1,7 @@
 package tn.esprit.abonnement.services.chatbot.handlers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import tn.esprit.abonnement.services.chatbot.ChatbotDataFetcher;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnBean(name = "openAiService")
 public class PaymentIssueHandler {
 
     private final ChatbotDataFetcher dataFetcher;
