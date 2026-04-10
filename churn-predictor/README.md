@@ -2,6 +2,26 @@
 
 An advanced ML-powered churn prediction system for MiNoLingo educational platform with real-time predictions, SHAP explainability, and automated retention recommendations.
 
+## ⚠️ BEFORE YOU START: Common Connection Issue
+
+**Problem:** `ERR_CONNECTION_REFUSED` when trying to predict churn
+
+**Cause:** The churn predictor API is not running
+
+**Quick Fix:**
+```bash
+cd abonnement/churn-predictor
+python app.py
+```
+
+**Or use the startup script:**
+- Windows: `start_api.bat`
+- Linux/Mac: `./start_api.sh`
+
+For detailed troubleshooting, see [TROUBLESHOOTING_CONNECTION.md](TROUBLESHOOTING_CONNECTION.md)
+
+---
+
 ## ✨ What's New - Major Improvements
 
 ### 🔥 High Priority Features (Implemented)

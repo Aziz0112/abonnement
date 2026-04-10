@@ -99,13 +99,20 @@
             <version>7.2.5</version>
         </dependency>
         
-        <!-- Stripe Java SDK -->
-        <dependency>
-            <groupId>com.stripe</groupId>
-            <artifactId>stripe-java</artifactId>
-            <version>29.0.0</version>
-        </dependency>
-    </dependencies>
+         <!-- Stripe Java SDK -->
+         <dependency>
+             <groupId>com.stripe</groupId>
+             <artifactId>stripe-java</artifactId>
+             <version>29.0.0</version>
+         </dependency>
+
+         <!-- OpenAI Java SDK -->
+         <dependency>
+             <groupId>com.theokanning.openai-gpt3-java</groupId>
+             <artifactId>service</artifactId>
+             <version>0.18.2</version>
+         </dependency>
+     </dependencies>
     <dependencyManagement>
         <dependencies>
             <dependency>
