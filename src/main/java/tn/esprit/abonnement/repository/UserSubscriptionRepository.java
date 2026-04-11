@@ -17,6 +17,9 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     // Find all subscriptions for a user
     List<UserSubscription> findByUserId(Long userId);
 
+    // Find the most recent subscription for a user (used for chatbot personalization)
+    Optional<UserSubscription> findFirstByUserIdOrderByIdDesc(Long userId);
+
     // Find active subscriptions for a user
     @Query("SELECT s FROM UserSubscription s WHERE s.userId = :userId AND s.status = 'ACTIVE'")
     Optional<UserSubscription> findActiveSubscriptionByUserId(@Param("userId") Long userId);
