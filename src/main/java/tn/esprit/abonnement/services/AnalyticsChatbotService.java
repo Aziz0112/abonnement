@@ -223,15 +223,27 @@ public class AnalyticsChatbotService {
                 log.info("Ollama API response structure valid");
             }
             
-            // Ollama response format: {"message": {"role": "assistant", "content": "..."}}
+            // Try OpenAI-compatible format first: {"choices": [{"message": {"content": "..."}}]}
+            JsonNode choicesNode = root.path("choices");
+            if (choicesNode.isArray() && choicesNode.size() > 0) {
+                JsonNode firstChoice = choicesNode.get(0);
+                JsonNode choiceMessage = firstChoice.path("message");
+                if (choiceMessage.has("content")) {
+                    String content = choiceMessage.path("content").asText();
+                    log.info("AI response content extracted (OpenAI format): {} characters", content.length());
+                    return content;
+                }
+            }
+
+            // Fallback: native Ollama format: {"message": {"role": "assistant", "content": "..."}}
             JsonNode messageNode = root.path("message");
             if (messageNode.has("content")) {
                 String content = messageNode.path("content").asText();
-                log.info("AI response content extracted: {} characters", content.length());
+                log.info("AI response content extracted (Ollama format): {} characters", content.length());
                 return content;
             }
             
-            log.error("No message.content in Ollama response");
+            log.error("No message.content in Ollama response. Body: {}", response.getBody());
             return "I apologize, but I couldn't generate a response. Please try again.";
 
         } catch (org.springframework.web.client.HttpClientErrorException e) {
