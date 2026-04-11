@@ -25,13 +25,10 @@ public class AnalyticsChatbotService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${openrouter.api.key}")
-    private String openRouterApiKey;
+    @Value("${ollama.api.url:http://localhost:11434/api/chat}")
+    private String ollamaApiUrl;
 
-    @Value("${openrouter.api.url:https://openrouter.ai/api/v1/chat/completions}")
-    private String openRouterApiUrl;
-
-    @Value("${openrouter.model:openai/gpt-3.5-turbo}")
+    @Value("${ollama.model:qwen2.5:3b}")
     private String model;
 
     private static final double TEMPERATURE = 0.7;
@@ -55,8 +52,8 @@ public class AnalyticsChatbotService {
             List<Map<String, String>> messages = buildMessages(systemPrompt, request);
             log.info("Messages to send: {}", messages.size());
 
-            // 3. Call OpenRouter API
-            String aiResponse = callOpenRouterAPI(messages);
+            // 3. Call Ollama API
+            String aiResponse = callOllamaAPI(messages);
             log.info("AI response received: {} characters", aiResponse != null ? aiResponse.length() : 0);
 
             // 4. Build and return response
@@ -173,47 +170,91 @@ public class AnalyticsChatbotService {
     }
 
     /**
-     * Call OpenRouter API with the provided messages
+     * Call Ollama API with the provided messages
      */
-    private String callOpenRouterAPI(List<Map<String, String>> messages) {
+    private String callOllamaAPI(List<Map<String, String>> messages) {
         try {
-            // Build request body
+            // Log API configuration
+            log.info("=== OLLAMA API CALL ====");
+            log.info("API URL: {}", ollamaApiUrl);
+            log.info("Model: {}", model);
+            log.info("Temperature: {}", TEMPERATURE);
+            log.info("Max Tokens: {}", MAX_TOKENS);
+            
+            // Build request body for Ollama
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
             requestBody.put("messages", messages);
-            requestBody.put("temperature", TEMPERATURE);
-            requestBody.put("max_tokens", MAX_TOKENS);
+            requestBody.put("stream", false); // Ollama streaming disabled
+            
+            log.info("Messages to send: {}", messages.size());
+            log.info("Request body keys: {}", requestBody.keySet());
 
-            // Set headers
+            // Set headers (Ollama doesn't need API key)
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + openRouterApiKey);
-            headers.set("HTTP-Referer", "https://minolingo.online");
-            headers.set("X-Title", "MinoLingo Education Platform");
+            
+            log.info("Headers set: Content-Type");
 
             // Create request entity
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
             // Make API call
+            log.info("Making POST request to Ollama API...");
             ResponseEntity<String> response = restTemplate.exchange(
-                    openRouterApiUrl,
+                    ollamaApiUrl,
                     HttpMethod.POST,
                     entity,
                     String.class
             );
+            
+            log.info("Response Status Code: {}", response.getStatusCodeValue());
+            log.info("Response Headers: {}", response.getHeaders().keySet());
+            log.info("Response Body Length: {} characters", response.getBody() != null ? response.getBody().length() : 0);
 
             // Parse response
             JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode choices = root.path("choices");
-            if (choices.isArray() && choices.size() > 0) {
-                JsonNode message = choices.get(0).path("message");
-                return message.path("content").asText();
+            
+            // Log if there's an error in the response
+            if (root.has("error")) {
+                JsonNode errorNode = root.path("error");
+                log.error("Ollama API returned error: {}", errorNode.asText());
+            } else {
+                log.info("Ollama API response structure valid");
             }
-
+            
+            // Ollama response format: {"message": {"role": "assistant", "content": "..."}}
+            JsonNode messageNode = root.path("message");
+            if (messageNode.has("content")) {
+                String content = messageNode.path("content").asText();
+                log.info("AI response content extracted: {} characters", content.length());
+                return content;
+            }
+            
+            log.error("No message.content in Ollama response");
             return "I apologize, but I couldn't generate a response. Please try again.";
 
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("=== HTTP CLIENT ERROR ====");
+            log.error("Status Code: {}", e.getStatusCode());
+            log.error("Status Text: {}", e.getStatusText());
+            log.error("Response Body: {}", e.getResponseBodyAsString());
+            log.error("This is a 4xx error - likely Ollama not accessible or request format issue");
+            return "I encountered an error connecting to the AI service. Please try again.";
+            
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            log.error("=== HTTP SERVER ERROR ====");
+            log.error("Status Code: {}", e.getStatusCode());
+            log.error("Status Text: {}", e.getStatusText());
+            log.error("Response Body: {}", e.getResponseBodyAsString());
+            log.error("This is a 5xx error - Ollama server issue");
+            return "I encountered an error connecting to the AI service. Please try again.";
+            
         } catch (Exception e) {
-            log.error("Error calling OpenRouter API", e);
+            log.error("=== UNEXPECTED ERROR ====");
+            log.error("Exception type: {}", e.getClass().getName());
+            log.error("Exception message: {}", e.getMessage());
+            log.error("Exception stack trace:", e);
             return "I encountered an error connecting to the AI service. Please try again.";
         }
     }
