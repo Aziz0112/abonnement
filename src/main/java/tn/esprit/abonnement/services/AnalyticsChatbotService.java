@@ -208,8 +208,8 @@ public class AnalyticsChatbotService {
                     String.class
             );
             
-            log.info("Response Status Code: {}", response.getStatusCodeValue());
-            log.info("Response Headers: {}", response.getHeaders().keySet());
+            log.info("Response Status Code: {}", response.getStatusCode().value());
+            log.info("Response Headers: {}", response.getHeaders().size());
             log.info("Response Body Length: {} characters", response.getBody() != null ? response.getBody().length() : 0);
 
             // Parse response
