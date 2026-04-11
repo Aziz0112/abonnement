@@ -42,14 +42,22 @@ public class AnalyticsChatbotService {
      */
     public ChatResponse chat(ChatRequest request) {
         try {
+            log.info("=== CHAT REQUEST ====");
+            log.info("User ID: {}", request.getUserId());
+            log.info("Message: {}", request.getMessage());
+            log.info("Analytics present: {}", request.getAnalytics() != null);
+            
             // 1. Build system prompt with MinoLingo context
             String systemPrompt = buildSystemPrompt(request);
+            log.info("System prompt length: {} characters", systemPrompt.length());
 
             // 2. Build messages for OpenRouter
             List<Map<String, String>> messages = buildMessages(systemPrompt, request);
+            log.info("Messages to send: {}", messages.size());
 
             // 3. Call OpenRouter API
             String aiResponse = callOpenRouterAPI(messages);
+            log.info("AI response received: {} characters", aiResponse != null ? aiResponse.length() : 0);
 
             // 4. Build and return response
             return ChatResponse.builder()
@@ -58,7 +66,11 @@ public class AnalyticsChatbotService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Error in chat service", e);
+            log.error("=== ERROR IN CHAT SERVICE ====");
+            log.error("Exception type: {}", e.getClass().getName());
+            log.error("Exception message: {}", e.getMessage());
+            log.error("Exception stack trace:", e);
+            
             return ChatResponse.builder()
                     .message("I apologize, but I encountered an error. Please try again.")
                     .suggestions(new ArrayList<>())
