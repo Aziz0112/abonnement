@@ -16,7 +16,7 @@ public class AnalyticsChatbotService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${chatbot.service.url:http://localhost:8087}")
+    @Value("${chatbot.service.url:http://localhost:8085}")
     private String chatbotServiceUrl;
 
     @Value("${chatbot.service.api-key:minolingo-chatbot-secret-2026}")
