@@ -5,7 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.abonnement.dto.BookRequest;
+import tn.esprit.abonnement.dto.RecommendationDTO;
 import tn.esprit.abonnement.entity.UserSubscription;
+import tn.esprit.abonnement.services.RecommendationService;
 import tn.esprit.abonnement.services.UserSubscriptionService;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.List;
 public class UserSubscriptionController {
 
     private final UserSubscriptionService userSubscriptionService;
+    private final RecommendationService recommendationService;
 
     @PostMapping("/book")
     public ResponseEntity<UserSubscription> bookSubscription(@RequestBody BookRequest request) {
@@ -63,6 +66,11 @@ public class UserSubscriptionController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userSubscriptionService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/user/{userId}/recommendation")
+    public ResponseEntity<RecommendationDTO> getRecommendation(@PathVariable Long userId) {
+        return ResponseEntity.ok(recommendationService.getRecommendationForUser(userId));
     }
 
     @PatchMapping("/{id}/auto-renew")
