@@ -5,10 +5,11 @@ import lombok.*;
 @Table(name = "subscriptionplans")
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
 public class SubscriptionPlan {
 
     @Id

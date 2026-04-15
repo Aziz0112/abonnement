@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 @Table(name = "usersubscriptions")
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class UserSubscription {
 
@@ -24,8 +24,10 @@ public class UserSubscription {
     @ManyToOne
     @JoinColumn(name = "plan_id")
     private SubscriptionPlan plan;
+
     @Column(name = "subscribed")
     private LocalDateTime subscribedAt;
+
     @Column(name = "expires")
     private LocalDateTime expiresAt;
 

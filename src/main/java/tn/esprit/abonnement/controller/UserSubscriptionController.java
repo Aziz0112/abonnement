@@ -73,7 +73,7 @@ public class UserSubscriptionController {
         return ResponseEntity.ok(recommendationService.getRecommendationForUser(userId));
     }
 
-    @PatchMapping("/{id}/auto-renew")
+    @PostMapping("/{id}/auto-renew")
     public ResponseEntity<UserSubscription> toggleAutoRenew(@PathVariable Long id,
             @RequestParam boolean enabled) {
         return ResponseEntity.ok(userSubscriptionService.toggleAutoRenew(id, enabled));
