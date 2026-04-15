@@ -12,7 +12,6 @@ import tn.esprit.abonnement.services.AnalyticsChatbotService;
 @RequestMapping("/api/abonnements/analytics/chat")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class AnalyticsChatbotController {
 
     private final AnalyticsChatbotService chatbotService;

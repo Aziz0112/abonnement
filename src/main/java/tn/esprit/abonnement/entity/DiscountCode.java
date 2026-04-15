@@ -27,12 +27,10 @@ public class DiscountCode {
     private Integer maxUses;
 
     @Column(name = "uses_count")
-    @Builder.Default
     private Integer usesCount = 0;
 
     @Column(name = "is_active")
-    @Builder.Default
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;

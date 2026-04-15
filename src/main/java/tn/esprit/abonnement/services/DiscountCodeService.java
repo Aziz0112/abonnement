@@ -39,8 +39,8 @@ public class DiscountCodeService {
         if (code.getUsesCount() == null) {
             code.setUsesCount(0);
         }
-        if (!code.isActive()) {
-            code.setActive(true);
+        if (code.getIsActive() == null || !code.getIsActive()) {
+            code.setIsActive(true);
         }
         
         return discountCodeRepository.save(code);
@@ -62,7 +62,7 @@ public class DiscountCodeService {
                 .orElseThrow(() -> new RuntimeException("Discount code not found with id: " + id));
         
         log.info("Deactivating discount code: {}", code.getCode());
-        code.setActive(false);
+        code.setIsActive(false);
         discountCodeRepository.save(code);
     }
 
@@ -74,7 +74,7 @@ public class DiscountCodeService {
                 .orElseThrow(() -> new RuntimeException("Invalid discount code"));
 
         // Check if code is active
-        if (!discount.isActive()) {
+        if (discount.getIsActive() == null || !discount.getIsActive()) {
             throw new RuntimeException("Discount code is no longer active");
         }
 
