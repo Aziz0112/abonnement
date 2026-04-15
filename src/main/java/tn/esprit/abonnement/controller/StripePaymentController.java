@@ -60,6 +60,9 @@ public class StripePaymentController {
     @Autowired
     private InvoiceService invoiceService;
 
+    @Autowired
+    private tn.esprit.abonnement.services.DiscountCodeService discountCodeService;
+
     @PostConstruct
     public void init() {
         Stripe.apiKey = stripeSecretKey;
@@ -90,8 +93,29 @@ public class StripePaymentController {
                         .body(Map.of("error", "You already have an active subscription"));
             }
 
+            // Apply discount if a valid code was provided
+            double finalPrice = plan.getPrice();
+            int appliedDiscountPercentage = 0;
+            String appliedDiscountCode = null;
+            if (request.getDiscountCode() != null && !request.getDiscountCode().isBlank()) {
+                try {
+                    var validation = discountCodeService.validateCode(request.getDiscountCode().trim().toUpperCase());
+                    appliedDiscountPercentage = validation.getDiscountPercentage();
+                    appliedDiscountCode = validation.getCode();
+                    finalPrice = plan.getPrice() * (100.0 - appliedDiscountPercentage) / 100.0;
+                    logger.info("Applied discount code {} ({}% off): {} -> {}",
+                            appliedDiscountCode, appliedDiscountPercentage, plan.getPrice(), finalPrice);
+                } catch (Exception e) {
+                    logger.warn("Invalid discount code '{}' provided during checkout: {}",
+                            request.getDiscountCode(), e.getMessage());
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("error", "Invalid discount code: " + e.getMessage()));
+                }
+            }
+
             // Convert price to cents for Stripe (Stripe uses smallest currency unit)
-            long priceInCents = Math.round(plan.getPrice() * 100);
+            long priceInCents = Math.round(finalPrice * 100);
 
             // Build the Checkout Session
             SessionCreateParams params = SessionCreateParams.builder()
@@ -117,9 +141,20 @@ public class StripePaymentController {
                     .putMetadata("userId", request.getUserId().toString())
                     .putMetadata("planId", request.getPlanId().toString())
                     .putMetadata("email", request.getEmail())
+                    .putMetadata("discountCode", appliedDiscountCode == null ? "" : appliedDiscountCode)
+                    .putMetadata("discountPercentage", String.valueOf(appliedDiscountPercentage))
                     .build();
 
             Session session = Session.create(params);
+
+            // Increment discount usage after successful session creation
+            if (appliedDiscountCode != null) {
+                try {
+                    discountCodeService.useCode(appliedDiscountCode);
+                } catch (Exception e) {
+                    logger.warn("Failed to increment discount usage for {}: {}", appliedDiscountCode, e.getMessage());
+                }
+            }
 
             logger.info("Stripe Checkout session created: {}", session.getId());
 

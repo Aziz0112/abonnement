@@ -26,4 +26,6 @@ public class CheckoutRequest {
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     private String email;
+
+    private String discountCode;
 }
