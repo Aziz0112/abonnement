@@ -7,10 +7,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "discount_codes")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class DiscountCode {
 
     @Id
