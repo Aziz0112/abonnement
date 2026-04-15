@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.esprit.abonnement.dto.DiscountValidationDTO;
 import tn.esprit.abonnement.entity.DiscountCode;
+import tn.esprit.abonnement.exception.BadRequestException;
+import tn.esprit.abonnement.exception.ResourceNotFoundException;
 import tn.esprit.abonnement.repository.DiscountCodeRepository;
 
 import java.time.LocalDateTime;
@@ -71,26 +73,24 @@ public class DiscountCodeService {
      */
     public DiscountValidationDTO validateCode(String code) {
         DiscountCode discount = discountCodeRepository.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("Invalid discount code"));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid discount code: " + code));
 
         // Check if code is active
         if (discount.getIsActive() == null || !discount.getIsActive()) {
-            throw new RuntimeException("Discount code is no longer active");
+            throw new BadRequestException("Discount code is no longer active");
         }
 
         // Check if code has reached maximum uses
-        if (discount.getMaxUses() != null && 
+        if (discount.getMaxUses() != null &&
+            discount.getUsesCount() != null &&
             discount.getUsesCount() >= discount.getMaxUses()) {
-            throw new RuntimeException("Discount code has reached maximum uses");
+            throw new BadRequestException("Discount code has reached maximum uses");
         }
 
         log.info("Discount code validated successfully: {} ({}% off)", 
                  code, discount.getDiscountPercentage());
 
-        return DiscountValidationDTO.builder()
-                .code(discount.getCode())
-                .discountPercentage(discount.getDiscountPercentage())
-                .build();
+        return new DiscountValidationDTO(discount.getCode(), discount.getDiscountPercentage());
     }
 
     /**
