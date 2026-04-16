@@ -18,11 +18,8 @@ public class ConfirmRequest {
     @NotBlank(message = "Session ID is required")
     private String sessionId;
 
-    @NotNull(message = "User ID is required")
     private Long userId;
 
-    @NotNull(message = "Plan ID is required")
-    @Positive(message = "Plan ID must be positive")
     private Long planId;
 
     private String email;

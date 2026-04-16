@@ -187,28 +187,59 @@ public class StripePaymentController {
             // Retrieve the Stripe session to verify payment
             Session session = Session.retrieve(request.getSessionId());
 
-            if (!"paid".equals(session.getPaymentStatus())) {
-                logger.warn("Payment not completed for session: {}", request.getSessionId());
+            // If userId/planId not provided by client, read from Stripe session metadata (more reliable)
+            Long userId = request.getUserId();
+            Long planId = request.getPlanId();
+            if (userId == null && session.getMetadata() != null && session.getMetadata().containsKey("userId")) {
+                userId = Long.parseLong(session.getMetadata().get("userId"));
+                logger.info("Read userId={} from Stripe session metadata", userId);
+            }
+            if (planId == null && session.getMetadata() != null && session.getMetadata().containsKey("planId")) {
+                planId = Long.parseLong(session.getMetadata().get("planId"));
+                logger.info("Read planId={} from Stripe session metadata", planId);
+            }
+            if (userId == null || planId == null) {
+                logger.error("Cannot resolve userId or planId for session {}", request.getSessionId());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "Missing userId or planId"));
+            }
+
+            String paymentStatus = session.getPaymentStatus();
+            String sessionStatus  = session.getStatus();
+            logger.info("Session {} — paymentStatus={}, sessionStatus={}", request.getSessionId(), paymentStatus, sessionStatus);
+
+            // Accept "paid" payment status OR a fully "complete" session
+            // (Stripe may redirect before paymentStatus flips to "paid" in edge cases)
+            boolean paymentVerified = "paid".equals(paymentStatus)
+                    || "complete".equals(sessionStatus)
+                    || "no_payment_needed".equals(paymentStatus);
+
+            if (!paymentVerified) {
+                logger.warn("Payment not verified for session: {} (paymentStatus={}, sessionStatus={})",
+                        request.getSessionId(), paymentStatus, sessionStatus);
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "Payment has not been completed"));
+                        .body(Map.of("success", false, "message", "Payment has not been completed yet. Please try again in a moment."));
             }
 
             // Check for existing active subscription (idempotency)
-            var existingSubscription = subscriptionService.getActiveSubscriptionByUserId(request.getUserId());
+            var existingSubscription = subscriptionService.getActiveSubscriptionByUserId(userId);
             if (existingSubscription.isPresent()
                     && existingSubscription.get().getStatus() == SubscriptionStatus.ACTIVE) {
-                logger.info("Subscription already active for user {} — returning existing", request.getUserId());
+                logger.info("Subscription already active for user {} — returning existing", userId);
+                UserSubscription existing = existingSubscription.get();
                 return ResponseEntity.ok(Map.of(
                         "success", true,
                         "message", "Subscription is already active",
-                        "subscription", existingSubscription.get()));
+                        "subscriptionId", existing.getId(),
+                        "planName", existing.getPlan() != null ? existing.getPlan().getName().name() : "",
+                        "status", existing.getStatus().name(),
+                        "subscribedAt", existing.getSubscribedAt() != null ? existing.getSubscribedAt().toString() : "",
+                        "expiresAt", existing.getExpiresAt() != null ? existing.getExpiresAt().toString() : ""));
             }
 
             // Book the subscription
-            UserSubscription subscription = subscriptionService.bookSubscription(
-                    request.getUserId(),
-                    request.getPlanId());
+            UserSubscription subscription = subscriptionService.bookSubscription(userId, planId);
 
             logger.info("Subscription created with ID: {}", subscription.getId());
 
@@ -250,10 +281,15 @@ public class StripePaymentController {
                 logger.error("Error sending confirmation email: {}", e.getMessage(), e);
             }
 
+            // Return safe flat fields — never serialize the entity directly (avoids Jackson/Hibernate issues)
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Payment confirmed — subscription activated!",
-                    "subscription", subscription));
+                    "subscriptionId", subscription.getId(),
+                    "planName", subscription.getPlan() != null ? subscription.getPlan().getName().name() : "",
+                    "status", subscription.getStatus().name(),
+                    "subscribedAt", subscription.getSubscribedAt() != null ? subscription.getSubscribedAt().toString() : "",
+                    "expiresAt", subscription.getExpiresAt() != null ? subscription.getExpiresAt().toString() : ""));
 
         } catch (StripeException e) {
             logger.error("Stripe error confirming payment: {}", e.getMessage(), e);
