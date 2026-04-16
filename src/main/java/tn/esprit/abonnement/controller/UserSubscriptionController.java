@@ -11,6 +11,7 @@ import tn.esprit.abonnement.services.RecommendationService;
 import tn.esprit.abonnement.services.UserSubscriptionService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/abonnements")
@@ -73,9 +74,10 @@ public class UserSubscriptionController {
         return ResponseEntity.ok(recommendationService.getRecommendationForUser(userId));
     }
 
-    @PatchMapping("/{id}/auto-renew")
-    public ResponseEntity<UserSubscription> toggleAutoRenew(@PathVariable Long id,
+    @PostMapping("/{id}/auto-renew")
+    public ResponseEntity<?> toggleAutoRenew(@PathVariable Long id,
             @RequestParam boolean enabled) {
-        return ResponseEntity.ok(userSubscriptionService.toggleAutoRenew(id, enabled));
+        userSubscriptionService.toggleAutoRenew(id, enabled);
+        return ResponseEntity.ok(Map.of("success", true, "autoRenew", enabled));
     }
 }
