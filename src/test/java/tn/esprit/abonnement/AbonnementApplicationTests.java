@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tn.esprit.abonnement.entity.PlanType;
 import tn.esprit.abonnement.entity.SubscriptionPlan;
 import tn.esprit.abonnement.repository.SubscriptionPlanRepository;
 import tn.esprit.abonnement.services.SubscriptionPlanService;
@@ -28,27 +29,27 @@ class AbonnementApplicationTests {
     @Test
     void testCreatePlan_success() {
         SubscriptionPlan plan = new SubscriptionPlan();
-        plan.setName("Basic");
+        plan.setName(PlanType.STANDARD);
         plan.setPrice(10.0);
         plan.setDurationDays(30);
-        plan.setDescription("Basic plan");
+        plan.setDescription("Standard plan");
 
         when(subscriptionPlanRepository.save(plan)).thenReturn(plan);
 
         SubscriptionPlan result = subscriptionPlanService.create(plan);
 
         assertNotNull(result);
-        assertEquals("Basic", result.getName());
+        assertEquals(PlanType.STANDARD, result.getName());
         verify(subscriptionPlanRepository, times(1)).save(plan);
     }
 
     @Test
     void testCreatePlan_nullPrice_throwsException() {
         SubscriptionPlan plan = new SubscriptionPlan();
-        plan.setName("Basic");
+        plan.setName(PlanType.FREEMIUM);
         plan.setPrice(null);
         plan.setDurationDays(30);
-        plan.setDescription("Basic plan");
+        plan.setDescription("Freemium plan");
 
         assertThrows(IllegalArgumentException.class, () -> subscriptionPlanService.create(plan));
     }
@@ -56,10 +57,10 @@ class AbonnementApplicationTests {
     @Test
     void testCreatePlan_negativePrice_throwsException() {
         SubscriptionPlan plan = new SubscriptionPlan();
-        plan.setName("Basic");
+        plan.setName(PlanType.STANDARD);
         plan.setPrice(-5.0);
         plan.setDurationDays(30);
-        plan.setDescription("Basic plan");
+        plan.setDescription("Standard plan");
 
         assertThrows(IllegalArgumentException.class, () -> subscriptionPlanService.create(plan));
     }
@@ -67,10 +68,32 @@ class AbonnementApplicationTests {
     @Test
     void testCreatePlan_nullDuration_throwsException() {
         SubscriptionPlan plan = new SubscriptionPlan();
-        plan.setName("Basic");
+        plan.setName(PlanType.PREMIUM);
         plan.setPrice(10.0);
         plan.setDurationDays(null);
-        plan.setDescription("Basic plan");
+        plan.setDescription("Premium plan");
+
+        assertThrows(IllegalArgumentException.class, () -> subscriptionPlanService.create(plan));
+    }
+
+    @Test
+    void testCreatePlan_invalidDuration_throwsException() {
+        SubscriptionPlan plan = new SubscriptionPlan();
+        plan.setName(PlanType.PREMIUM);
+        plan.setPrice(10.0);
+        plan.setDurationDays(0);
+        plan.setDescription("Premium plan");
+
+        assertThrows(IllegalArgumentException.class, () -> subscriptionPlanService.create(plan));
+    }
+
+    @Test
+    void testCreatePlan_emptyDescription_throwsException() {
+        SubscriptionPlan plan = new SubscriptionPlan();
+        plan.setName(PlanType.STANDARD);
+        plan.setPrice(10.0);
+        plan.setDurationDays(30);
+        plan.setDescription("");
 
         assertThrows(IllegalArgumentException.class, () -> subscriptionPlanService.create(plan));
     }
@@ -78,9 +101,9 @@ class AbonnementApplicationTests {
     @Test
     void testGetAll_returnsList() {
         SubscriptionPlan plan1 = new SubscriptionPlan();
-        plan1.setName("Basic");
+        plan1.setName(PlanType.FREEMIUM);
         SubscriptionPlan plan2 = new SubscriptionPlan();
-        plan2.setName("Premium");
+        plan2.setName(PlanType.PREMIUM);
 
         when(subscriptionPlanRepository.findAll()).thenReturn(Arrays.asList(plan1, plan2));
 
@@ -93,14 +116,14 @@ class AbonnementApplicationTests {
     @Test
     void testGetById_found() {
         SubscriptionPlan plan = new SubscriptionPlan();
-        plan.setName("Basic");
+        plan.setName(PlanType.STANDARD);
 
         when(subscriptionPlanRepository.findById(1L)).thenReturn(Optional.of(plan));
 
         SubscriptionPlan result = subscriptionPlanService.getById(1L);
 
         assertNotNull(result);
-        assertEquals("Basic", result.getName());
+        assertEquals(PlanType.STANDARD, result.getName());
     }
 
     @Test
