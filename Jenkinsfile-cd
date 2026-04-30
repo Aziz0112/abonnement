@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Pull Docker Image') {
+            steps {
+                sh 'docker pull nsiriaziz/minolingo-abonnement:latest'
+            }
+        }
+
+        stage('Stop Old Container') {
+            steps {
+                sh '''
+                    docker stop minolingo-abonnement || true
+                    docker rm minolingo-abonnement || true
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker run -d \
+                        --name minolingo-abonnement \
+                        -p 8085:8085 \
+                        nsiriaziz/minolingo-abonnement:latest
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh 'docker ps | grep minolingo-abonnement'
+            }
+        }
+    }
+
+    post {
+        success { echo 'Deployment completed successfully! 🚀' }
+        failure { echo 'Deployment failed!' }
+    }
+}
