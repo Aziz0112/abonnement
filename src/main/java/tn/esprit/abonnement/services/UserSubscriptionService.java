@@ -35,12 +35,12 @@ public class UserSubscriptionService {
         SubscriptionPlan plan = subscriptionPlanRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("SubscriptionPlan not found with id: " + planId));
 
-        // Check for active subscription — return it instead of throwing so confirm is idempotent
-        Optional<UserSubscription> activeSubscription =
+        // Check for active subscription
+        Optional<UserSubscription> activeSubscription = 
                 userSubscriptionRepository.findActiveSubscriptionByUserId(userId);
-
+        
         if (activeSubscription.isPresent()) {
-            return activeSubscription.get();
+            throw new IllegalStateException("User already has an active subscription");
         }
 
         // Calculate expiry date
